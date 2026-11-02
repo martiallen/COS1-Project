@@ -1,7 +1,10 @@
-#include <iostream>
-//test
-main()
-{
+#include "Game.h"
 
-	return 0;
+int main()
+{
+    Game game;
+
+    game.Run();
+
+    return 0;
 }

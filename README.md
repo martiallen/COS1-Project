@@ -1,7 +1,7 @@
 
 Project & Portfolio 1
 
-### Student First & Last Name
+Marisela Allen
 
 Hello my name is Marisela Allen. I am a student from Florida. The purpose of this repository is to practice development using version control. This work will help me begin to build a portfolio of skills and accomplishment that can be shared in the future.
 
