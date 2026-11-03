@@ -1,26 +1,27 @@
 #include "Item.h"
 
 // Default constructor
+// Creates a generic item if no information is provided
 Item::Item()
 {
     name = "Unknown Item";
-    description = "There is nothing unusual about it.";
+    description = "You are not sure what this is.";
 }
 
-// Constructor used when creating an item
+// Constructor used to create an item with a name and description
 Item::Item(std::string itemName, std::string itemDescription)
 {
     name = itemName;
     description = itemDescription;
 }
 
-// Returns the item name
+// Returns the name of the item
 std::string Item::GetName()
 {
     return name;
 }
 
-// Returns the item description
+// Returns the description of the item
 std::string Item::GetDescription()
 {
     return description;
