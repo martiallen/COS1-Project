@@ -22,6 +22,12 @@ private:
     // Stores all items Matt has collected
     std::vector<Item> inventory;
 
+
+    // WEEK 3: Stores the memories Matt has recovered.
+    // Each memory is stored as a string.
+    std::vector<std::string> memories;
+
+
 public:
 
     // Default constructor
@@ -53,4 +59,15 @@ public:
 
     // Displays every item currently in Matt inventory
     void DisplayInventory();
+
+
+    // WEEK 3: Adds a recovered memory to Matt journal.
+    void AddMemory(const std::string& memory);
+
+    // WEEK 3: Displays all recovered memory fragments.
+    void DisplayMemories();
+
+    // WEEK 3: Returns the number of recovered memories.
+    int GetMemoryCount();
+
 };

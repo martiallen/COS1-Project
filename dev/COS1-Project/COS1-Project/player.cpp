@@ -113,12 +113,53 @@ void Player::DisplayInventory()
     // Loop through the inventory and display each item
     for (int i = 0; i < inventory.size(); i++)
     {
-        std::cout << i + 1 << ". "
-            << inventory[i].GetName()
-            << "\n";
+        std::cout << i + 1 << ". " << inventory[i].GetName() << "\n";
 
-        std::cout << "   "
-            << inventory[i].GetDescription()
-            << "\n";
+        std::cout << "   " << inventory[i].GetDescription() << "\n";
     }
-}
+
+    }// closes displayinventory()
+
+
+
+    // WEEK 3: Stores a recovered memory.
+    //
+    // The memory is passed by const reference so the function
+    // can read the text without modifying the original string.
+    void Player::AddMemory(const std::string & memory)
+    {
+        // Add the recovered memory to the player's vector.
+        memories.push_back(memory);
+    }
+
+    // WEEK 3: Displays Matt's recovered memories.
+    void Player::DisplayMemories()
+    {
+        std::cout << "\n";
+        std::cout << "============================\n";
+        std::cout << "       MEMORY JOURNAL\n";
+        std::cout << "============================\n";
+
+        // Check whether any memories have been recovered.
+        if (memories.empty())
+        {
+            std::cout << "No memories recovered.\n";
+            return;
+        }
+
+        // Loop through each recovered memory.
+        for (int i = 0; i < memories.size(); i++)
+        {
+            std::cout << "\nMemory " << i + 1 << ":\n";
+            std::cout << memories[i] << "\n";
+        }
+    }
+
+    // WEEK 3: Returns the total number of memories.
+    int Player::GetMemoryCount()
+    {
+        return static_cast<int>(memories.size());
+    }
+
+
+

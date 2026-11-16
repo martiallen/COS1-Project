@@ -166,15 +166,34 @@ void Game::DisplayMainMenu()
     }
 }
 
-// Starts a fresh game session
+
 void Game::StartNewGame()
 {
-    // Reset Matt to his default state
+    // Reset Matt to his starting values.
+    // This restores sanity, location, and clears inventory
+    // and memories through the Player constructor.
     player = Player();
 
-    // Controls the active gameplay loop
+    // Clear the previous room objects.
+    // This removes their collected-item and examined states.
+    rooms.clear();
+
+    // Rebuild the original rooms and collectible items.
+    CreateRooms();
+
+    // Clear all previous memory event progress.
+    memoryStates.clear();
+
+    // Give every room an unresolved memory state.
+    for (int i = 0; i < rooms.size(); i++)
+    {
+        memoryStates.push_back(0);
+    }
+
+    // Controls whether the player remains in gameplay.
     bool playing = true;
 
+    // Display the opening scene.
     std::cout << "\n";
     std::cout << "====================================\n";
     std::cout << "You wake to the sound of metal\n";
@@ -184,57 +203,65 @@ void Game::StartNewGame()
     std::cout << "where you are.\n";
     std::cout << "====================================\n";
 
-    // Continue gameplay until Matt returns to the main menu
+    // Continue gameplay until the player returns
+    // to the main menu.
     while (playing)
     {
+        // Display the current room and menu choices.
         DisplayGameMenu();
 
-        // There are currently six gameplay choices
-        int choice = GetValidatedInput(1, 6);
+        // Week 3 adds two new gameplay menu choices.
+        int choice = GetValidatedInput(1, 8);
 
-        // Examine the current room
         if (choice == 1)
         {
+            // Examine the current room.
             ExploreRoom();
         }
-
-        // Attempt to collect an item
         else if (choice == 2)
         {
+            // Collect an item from the current room.
             CollectItem();
         }
-
-        // Move to another prototype location
         else if (choice == 3)
         {
+            // Move to another room.
             MovePlayer();
         }
-
-        // Display Matt's inventory
         else if (choice == 4)
         {
+            // Display physical inventory.
             player.DisplayInventory();
         }
-
-        // Display Matt's current sanity
         else if (choice == 5)
         {
+            // Display sanity and psychological state.
             DisplaySanity();
         }
-
-        // Return to the main menu
         else if (choice == 6)
         {
+            // WEEK 3: Display recovered memories.
+            player.DisplayMemories();
+        }
+        else if (choice == 7)
+        {
+            // WEEK 3: Confront or avoid a memory.
+            HandleMemoryEvent();
+        }
+        else if (choice == 8)
+        {
+            // Return to the main menu.
+            // Unsaved progress is discarded in Week 3.
             playing = false;
         }
     }
 }
 
-// Displays information about Matt current room
-// and the available gameplay options
+
+
 void Game::DisplayGameMenu()
 {
-    // Determine which room Matt is currently inside
+    // Get the index of Matt's current location.
     int roomIndex = player.GetCurrentRoom();
 
     std::cout << "\n";
@@ -242,19 +269,22 @@ void Game::DisplayGameMenu()
     std::cout << rooms[roomIndex].GetName() << "\n";
     std::cout << "----------------------------\n";
 
-    // Display a description based on Matt current sanity
+    // Use Matt's sanity to determine the room description.
     std::cout << rooms[roomIndex].GetDescription(
         player.GetSanity()
     );
 
     std::cout << "\n\n";
 
+    // Week 3 expanded gameplay menu.
     std::cout << "1. Examine surroundings\n";
     std::cout << "2. Collect item\n";
     std::cout << "3. Move\n";
     std::cout << "4. View inventory\n";
     std::cout << "5. Check sanity\n";
-    std::cout << "6. Return to main menu\n";
+    std::cout << "6. View memory journal\n";
+    std::cout << "7. Investigate memory\n";
+    std::cout << "8. Return to main menu\n";
 
     std::cout << "\nEnter choice: ";
 }
@@ -487,3 +517,176 @@ int Game::GetValidatedInput(int minimum, int maximum)
         }
     }
 }
+
+
+void Game::HandleMemoryEvent()
+{
+    // Find Matt's current room.
+    int roomIndex = player.GetCurrentRoom();
+
+    // Read the event state for this location.
+    int eventState = memoryStates[roomIndex];
+
+    // A completed memory cannot be repeated for rewards.
+    if (eventState == 2)
+    {
+        std::cout << "\n";
+        std::cout << "You have already confronted this memory.\n";
+        std::cout << "There is nothing more to recover here.\n";
+        return;
+    }
+
+    std::cout << "\n";
+    std::cout << "====================================\n";
+    std::cout << "          MEMORY EVENT\n";
+    std::cout << "====================================\n";
+
+    // Each prototype room has its own memory event.
+    if (roomIndex == 0)
+    {
+        // TRAIN CAR MEMORY
+        std::cout << "\n";
+        std::cout << "A scream cuts through the silence.\n";
+        std::cout << "You remember the train.\n";
+        std::cout << "You remember someone needed help.\n";
+        std::cout << "Your body would not move.\n";
+    }
+    else if (roomIndex == 1)
+    {
+        // PLATFORM MEMORY
+        std::cout << "\n";
+        std::cout << "You see yourself standing on the platform.\n";
+        std::cout << "The scene repeats, but something is wrong.\n";
+        std::cout << "You hear a voice asking why you froze.\n";
+    }
+    else if (roomIndex == 2)
+    {
+        // WAITING ROOM MEMORY
+        std::cout << "\n";
+        std::cout << "A familiar voice echoes through the room.\n";
+        std::cout << "You remember your family waiting for you.\n";
+        std::cout << "You remember promises you have not kept.\n";
+    }
+
+    // SANITY-DEPENDENT PERCEPTION
+    //
+    // At low sanity, the memory is interpreted
+    // through additional psychological distortion.
+    if (player.GetSanity() <= 50)
+    {
+        std::cout << "\n";
+        std::cout << "The walls begin to change.\n";
+        std::cout << "A second voice speaks over the first.\n";
+        std::cout << "It sounds exactly like yours.\n";
+    }
+
+    // Display the player's available decisions.
+    std::cout << "\n";
+    std::cout << "What will you do?\n";
+    std::cout << "1. Confront the memory\n";
+    std::cout << "2. Look away\n";
+    std::cout << "3. Leave the memory alone\n";
+    std::cout << "Enter choice: ";
+
+    // Reuse the input validation from Week 2.
+    int choice = GetValidatedInput(1, 3);
+
+    if (choice == 1)
+    {
+        // CONFRONTATION
+        //
+        // Matt acknowledges the memory and gains clarity.
+        // This is a small sanity recovery, not a cure.
+
+        std::cout << "\n";
+        std::cout << "You force yourself to stay with the memory.\n";
+        std::cout << "It hurts, but the scene becomes clearer.\n";
+
+        // Restore a limited amount of sanity.
+        player.ChangeSanity(8);
+
+        // Store a different memory fragment for each room.
+        if (roomIndex == 0)
+        {
+            player.AddMemory(
+                "Train Car: Matt remembers freezing "
+                "during the violent incident."
+            );
+        }
+        else if (roomIndex == 1)
+        {
+            player.AddMemory(
+                "Platform: Matt recognizes the guilt "
+                "he has carried since the incident."
+            );
+        }
+        else if (roomIndex == 2)
+        {
+            player.AddMemory(
+                "Waiting Room: Matt remembers the family "
+                "he has been pulling away from."
+            );
+        }
+
+        // Mark this memory as permanently resolved
+        // during the current game session.
+        memoryStates[roomIndex] = 2;
+
+        std::cout << "\n";
+        std::cout << "Sanity increased by up to 8.\n";
+        std::cout << "Memory fragment recovered.\n";
+    }
+    else if (choice == 2)
+    {
+        // AVOIDANCE
+        //
+        // The first avoidance increases Matt's instability.
+        // The memory remains unresolved so the player
+        // can return to confront it later.
+
+        std::cout << "\n";
+        std::cout << "You turn away before the memory finishes.\n";
+        std::cout << "The sound follows you.\n";
+
+        // Only penalize the first avoidance.
+        // This prevents the player from farming sanity loss.
+        if (eventState == 0)
+        {
+            player.ChangeSanity(-12);
+
+            // Mark the memory as avoided but unresolved.
+            memoryStates[roomIndex] = 1;
+
+            std::cout << "\n";
+            std::cout << "Sanity decreased by up to 12.\n";
+        }
+        else
+        {
+            std::cout << "\n";
+            std::cout << "You have avoided this memory before.\n";
+            std::cout << "It remains unresolved.\n";
+        }
+    }
+    else
+    {
+        // LEAVE
+        //
+        // Matt chooses not to engage with the memory.
+        // No sanity changes and the event stays available.
+
+        std::cout << "\n";
+        std::cout << "You step away from the memory.\n";
+        std::cout << "It remains just beyond your reach.\n";
+    }
+
+    // Display the player's updated psychological state.
+    std::cout << "\n";
+    std::cout << "Current sanity: "
+        << player.GetSanity()
+        << "/100\n";
+
+    std::cout << "Mental state: "
+        << player.GetSanityState()
+        << "\n";
+}
+

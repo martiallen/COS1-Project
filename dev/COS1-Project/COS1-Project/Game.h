@@ -16,6 +16,23 @@ private:
     // Stores all rooms in the current prototype
     std::vector<Room> rooms;
 
+
+    // WEEK 3: Tracks the state of each room's memory event.
+    //
+    // 0 = Memory has not been confronted or avoided.
+    // 1 = Memory was avoided at least once.
+    // 2 = Memory has been confronted and resolved.
+    //
+    // Each index corresponds to a room in the rooms vector.
+    std::vector<int> memoryStates;
+
+
+
+    // WEEK 3: Runs the psychological memory event
+    // associated with Matt's current room.
+    void HandleMemoryEvent();
+
+
     // Controls whether the entire application continues running
     bool gameRunning;
 
