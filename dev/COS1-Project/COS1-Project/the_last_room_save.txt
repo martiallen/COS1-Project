@@ -1,0 +1,15 @@
+THE_LAST_ROOM_V1
+90 0
+1
+"Train Ticket" "A worn train ticket. The date has been scratched away."
+0
+3
+1 0
+0 1
+"Dog Tags" "A pair of military dog tags. Matt recognizes them immediately."
+0 1
+"Family Photograph" "A photograph of Matt with his family. The corner containing his face has been torn."
+3
+0
+0
+0
