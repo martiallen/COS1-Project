@@ -72,4 +72,17 @@ Before Week 4, I need to finish testing the Week 3 features and clean up anythin
 
 ### Week 4
 
-My final stand up...
+⚙️ Overview
+This week I focused on wrapping up my COS1 psychological horror game. My priorities were final integration, save/load functionality, testing, and getting the project ready for submission. The goal was to get everything working together instead of adding more features I wouldn't have time to finish.
+
+🧹 Improvements
+I cleaned up the Game class, tightened input validation, and worked through issues with the room, inventory, and sanity systems. I also focused on keeping the code organized and making sure changes didn't break existing functionality.
+
+🧟 Challenges
+The biggest challenge was getting everything to work together consistently. Fixing one issue sometimes exposed another, so I had to go back through the code, trace the problem, and test again. Time management was also a factor with the deadline closing in.
+
+🏆 Accomplishments
+I took this project from a basic class structure and game loop to a playable C++ prototype. I have a better understanding of class design, debugging, refactoring, and managing a project through GitHub. There is still plenty I need to improve, but I have a stronger foundation than I did four weeks ago.
+
+🔮 Next Steps
+With Week 4 wrapping up, my focus is final documentation, updating my GitHub board and README, and submitting the completed project. Beyond this course, I want to keep developing the game and eventually turn the prototype into something closer to the original vision.
