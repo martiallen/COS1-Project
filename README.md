@@ -22,11 +22,12 @@ Goal is to create horror experience that relies on atmosphere, storytelling, cho
 🌵 Challenges - What problems did I have & how I'm addressing them
 
 Taking the story elements and making them into functional game concepts...that I can code with my skill level. Trying to capture a creepy atmosphere in text based game concept. Also learning to Navigate github project board and writing out attainable goals was very new to me.
-<br>
+
 🏆 Accomplishments - What is something I "leveled up" on this week
 
  Creating the basic classes and structure for the horror game based on a short story I've written. Figuring out how to create the horror game and what coding component--- items, functions , classes I will need.
-<br>
+
+
 🔮 Next Steps - What I plan to prioritize and do next
 
 My goal this month is to get better at taking an idea like “the player is slowly losing their sanity” and turning it into smaller questions:
@@ -43,11 +44,31 @@ Focus Area The main area here is to break large features into smaller programmin
 
 ### Week 2
 
-My next stand up will go here...
+⚙️ Overview – This week I focused on my Week 2 milestones: room interactions, inventory/items, sanity behavior, and input validation. I worked on connecting the Player, Room, Item, and Game classes so they were doing more than just existing as separate pieces. I also continued testing the main game loop as I added each system.
+
+🌵 Challenges – The biggest challenge was getting the classes to communicate without breaking something that was already working. Room interactions and item handling started adding more moving parts, so I had to slow down and test each change instead of trying to build everything at once.
+
+🏆 Accomplishments – I got a better understanding of how the different classes in a larger C++ program depend on each other. I also improved at testing smaller pieces of code as I go instead of waiting until the end and trying to figure out where something broke.
+
+🔮 Next Steps – Before Week 3, I want to clean up anything left from the Week 2 milestone and make sure the room, item, sanity, and input systems are stable. After that, I can start building on top of them instead of carrying unfinished problems into the next milestone.
 
 ### Week 3
 
-Stay tuned, this stand up is coming soon...
+🔎 Overview
+This week I focused on my Week 3 milestones: memory fragments, sanity-based room descriptions, and player choices tied to confrontation or avoidance. I worked on connecting these features to the existing game loop so the player's decisions actually affect gameplay instead of just moving through rooms.
+
+ 🧹 Improvements
+I cleaned up parts of the Game class by separating larger sections of logic into smaller functions and reducing repeated checks. I also worked on organizing the sanity and player interaction code so it is easier to follow and maintain.
+
+ 🧟 Challenges
+The biggest challenge was keeping the different systems connected without creating a mess of conditions. Adding more choices means more things can break. I have been addressing this by testing individual features and using the debugger to track down issues instead of guessing.
+
+ 🏆 Accomplishments
+I have a better understanding of refactoring and how important class organization becomes as a project grows. I am getting more comfortable tracing how different functions and classes interact instead of just focusing on whether the code compiles.
+
+ 🔮 Next Steps
+Before Week 4, I need to finish testing the Week 3 features and clean up anything that is still causing problems. Week 4 will focus on final integration, save/load functionality, testing, and getting the project ready for submission. I want a working game, not a pile of unfinished features.
+
 
 ### Week 4
 
