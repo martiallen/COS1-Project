@@ -22,11 +22,12 @@ Goal is to create horror experience that relies on atmosphere, storytelling, cho
 🌵 Challenges - What problems did I have & how I'm addressing them
 
 Taking the story elements and making them into functional game concepts...that I can code with my skill level. Trying to capture a creepy atmosphere in text based game concept. Also learning to Navigate github project board and writing out attainable goals was very new to me.
-<br>
+
 🏆 Accomplishments - What is something I "leveled up" on this week
 
  Creating the basic classes and structure for the horror game based on a short story I've written. Figuring out how to create the horror game and what coding component--- items, functions , classes I will need.
-<br>
+
+
 🔮 Next Steps - What I plan to prioritize and do next
 
 My goal this month is to get better at taking an idea like “the player is slowly losing their sanity” and turning it into smaller questions:
@@ -82,4 +83,35 @@ The biggest challenge was getting everything to work together consistently. Fixi
 I took this project from a basic class structure and game loop to a playable C++ prototype. I have a better understanding of class design, debugging, refactoring, and managing a project through GitHub. There is still plenty I need to improve, but I have a stronger foundation than I did four weeks ago.
 
 ### 🔮 Next Steps
+🔎 Overview
+This week I focused on my Week 3 milestones: memory fragments, sanity-based room descriptions, and player choices tied to confrontation or avoidance. I worked on connecting these features to the existing game loop so the player's decisions actually affect gameplay instead of just moving through rooms.
+
+ 🧹 Improvements
+I cleaned up parts of the Game class by separating larger sections of logic into smaller functions and reducing repeated checks. I also worked on organizing the sanity and player interaction code so it is easier to follow and maintain.
+
+ 🧟 Challenges
+The biggest challenge was keeping the different systems connected without creating a mess of conditions. Adding more choices means more things can break. I have been addressing this by testing individual features and using the debugger to track down issues instead of guessing.
+
+ 🏆 Accomplishments
+I have a better understanding of refactoring and how important class organization becomes as a project grows. I am getting more comfortable tracing how different functions and classes interact instead of just focusing on whether the code compiles.
+
+ 🔮 Next Steps
+Before Week 4, I need to finish testing the Week 3 features and clean up anything that is still causing problems. Week 4 will focus on final integration, save/load functionality, testing, and getting the project ready for submission. I want a working game, not a pile of unfinished features.
+
+
+### Week 4
+
+⚙️ Overview
+This week I focused on wrapping up my COS1 psychological horror game. My priorities were final integration, save/load functionality, testing, and getting the project ready for submission. The goal was to get everything working together instead of adding more features I wouldn't have time to finish.
+
+🧹 Improvements
+I cleaned up the Game class, tightened input validation, and worked through issues with the room, inventory, and sanity systems. I also focused on keeping the code organized and making sure changes didn't break existing functionality.
+
+🧟 Challenges
+The biggest challenge was getting everything to work together consistently. Fixing one issue sometimes exposed another, so I had to go back through the code, trace the problem, and test again. Time management was also a factor with the deadline closing in.
+
+🏆 Accomplishments
+I took this project from a basic class structure and game loop to a playable C++ prototype. I have a better understanding of class design, debugging, refactoring, and managing a project through GitHub. There is still plenty I need to improve, but I have a stronger foundation than I did four weeks ago.
+
+🔮 Next Steps
 With Week 4 wrapping up, my focus is final documentation, updating my GitHub board and README, and submitting the completed project. Beyond this course, I want to keep developing the game and eventually turn the prototype into something closer to the original vision.
