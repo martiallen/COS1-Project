@@ -18,13 +18,13 @@ void Player::SetName(std::string playerName)
 }
 
 // Returns the player name
-std::string Player::GetName()
+std::string Player::GetName() const
 {
     return name;
 }
 
 // Returns Matt's current sanity value
-int Player::GetSanity()
+int Player::GetSanity() const
 {
     return sanity;
 }
@@ -57,7 +57,7 @@ void Player::ChangeSanity(int amount)
 //
 // These states will eventually control more than room
 // descriptions but Week 2 uses them primarily for perception
-std::string Player::GetSanityState()
+std::string Player::GetSanityState() const
 {
     if (sanity >= 76)
     {
@@ -77,8 +77,8 @@ std::string Player::GetSanityState()
     }
 }
 
-// Returns the index of Matts current room
-int Player::GetCurrentRoom()
+// Returns the player's current room.
+int Player::GetCurrentRoom() const
 {
     return currentRoom;
 }
@@ -156,10 +156,42 @@ void Player::DisplayInventory()
     }
 
     // WEEK 3: Returns the total number of memories.
-    int Player::GetMemoryCount()
+    int Player::GetMemoryCount() const
     {
         return static_cast<int>(memories.size());
     }
 
+
+
+    // WEEK 4: Get the total number of collected items.
+    //
+    // We use this to determine how many inventory
+    // records need to be written to the save file.
+    int Player::GetInventoryCount() const
+    {
+        return static_cast<int>(inventory.size());
+    }
+
+    // WEEK 4: Retrieve a specific collected item.
+    //
+    // The Game class calls this method while saving
+    // the player's inventory.
+    //
+    // The index must be within the inventory's bounds.
+    Item Player::GetInventoryItem(int index) const
+    {
+        return inventory[index];
+    }
+
+    // WEEK 4: Retrieve a specific recovered memory.
+    //
+    // This allows Game to save each memory in the
+    // same order Matt originally recovered it.
+    //
+    // The index must be within the memories vector's bounds.
+    std::string Player::GetMemory(int index) const
+    {
+        return memories[index];
+    }
 
 

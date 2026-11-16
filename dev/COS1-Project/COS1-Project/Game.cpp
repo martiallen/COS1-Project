@@ -1,7 +1,25 @@
 #include "Game.h"
-
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <limits>
+
+
+
+// WEEK 4: Name of the file used for saving progress.
+//
+// The file will be created in the application's
+// current working directory.
+const std::string SAVE_FILE = "the_last_room_save.txt";
+
+// Maximum counts accepted from a save file.
+// These limits help reject damaged or invalid save data.
+const int MAX_SAVE_ITEMS = 100;
+const int MAX_SAVE_MEMORIES = 100;
+
+
 
 // Game constructor
 //
@@ -115,103 +133,569 @@ void Game::CreateRooms()
     rooms.push_back(waitingRoom);
 }
 
-// Starts the application's main loop
 void Game::Run()
 {
-    // Keep displaying the main menu until the user exits
     while (gameRunning)
     {
+        // Show the main menu
         DisplayMainMenu();
+
+        // Get a valid menu selection
+        int choice = GetValidatedInput(1, 3);
+
+        // Process the player's selection
+        switch (choice)
+        {
+        case 1:
+            StartNewGame();
+            break;
+
+        case 2:
+            // Attempt to load the player's saved progress
+            if (LoadGame())
+            {
+                std::cout << "\nSaved game loaded successfully!\n";
+
+                // Resume gameplay here without resetting saved progress
+                PlayGame();
+            }
+            else
+            {
+                std::cout << "\nUnable to load saved game.\n";
+            }
+            break;
+
+        case 3:
+            // Display a message before closing the application
+            std::cout << "\nExiting the game...\n";
+            std::cout << "Thank you for playing.\n";
+
+            // Stop the main application loop
+            gameRunning = false;
+            break;
+        }
     }
 }
 
-// Displays the application main menu
-void Game::DisplayMainMenu()
+
+
+
+// WEEK 4: Saves Matt current game progress.
+//
+// This function writes the current game state
+// into a text file using std::ofstream.
+//
+// Returns true if saving succeeds.
+// Returns false if a file error occurs.
+bool Game::SaveGame()
 {
+    // Open the file for writing.
+    //
+    // std::ios::trunc replaces any existing save.
+    std::ofstream output(
+        SAVE_FILE,
+        std::ios::out | std::ios::trunc
+    );
+
+    // Check whether the file opened correctly.
+    if (!output.is_open())
+    {
+        std::cout << "\nERROR: Unable to save game.\n";
+        return false;
+    }
+
+  
+    // SECTION 1: SAVE FILE VERSION
+   
+
+    // Helps identify compatible save files.
+    output << "THE_LAST_ROOM_V1\n";
+
+  
+    // SECTION 2: PLAYER STATE
+  
+
+    // Save Matt's current sanity and room index.
+    output << player.GetSanity() << " "
+        << player.GetCurrentRoom() << "\n";
+
+   
+    // SECTION 3: PLAYER INVENTORY
+
+
+    // Save the number of collected items.
+    int inventoryCount = player.GetInventoryCount();
+
+    output << inventoryCount << "\n";
+
+    // Save each item's name and description.
+    for (int i = 0; i < inventoryCount; i++)
+    {
+        Item item = player.GetInventoryItem(i);
+
+        // Quoted strings preserve spaces.
+        output << std::quoted(item.GetName()) << " "
+            << std::quoted(item.GetDescription())
+            << "\n";
+    }
+
+   
+    // SECTION 4: RECOVERED MEMORIES
+   
+
+    // Save how many memories Matt has recovered.
+    int memoryCount = player.GetMemoryCount();
+
+    output << memoryCount << "\n";
+
+    // Write each recovered memory.
+    for (int i = 0; i < memoryCount; i++)
+    {
+        output << std::quoted(
+            player.GetMemory(i)
+        ) << "\n";
+    }
+
+
+    // SECTION 5: ROOM INFORMATION
+ 
+
+    // Save the number of rooms in the game.
+    output << rooms.size() << "\n";
+
+    // Loop through every room.
+    for (int i = 0;
+        i < static_cast<int>(rooms.size());
+        i++)
+    {
+        // Save whether this room was examined.
+        //
+        // 1 = examined
+        // 0 = not examined
+        int examined = 0;
+
+        if (rooms[i].GetExamined())
+        {
+            examined = 1;
+        }
+
+        // Save examination state and remaining items.
+        output << examined << " "
+            << rooms[i].GetItemCount()
+            << "\n";
+
+        // Save any items still inside this room.
+        for (int j = 0;
+            j < rooms[i].GetItemCount();
+            j++)
+        {
+            Item item = rooms[i].GetItem(j);
+
+            output << std::quoted(item.GetName())
+                << " "
+                << std::quoted(item.GetDescription())
+                << "\n";
+        }
+    }
+
+  
+    // SECTION 6: MEMORY EVENT STATES
+
+
+    // Save how many memory events exist.
+    output << memoryStates.size() << "\n";
+
+    // Save the state of each memory event.
+    //
+    // 0 = untouched
+    // 1 = avoided
+    // 2 = confronted
+    for (int i = 0;
+        i < static_cast<int>(memoryStates.size());
+        i++)
+    {
+        output << memoryStates[i] << "\n";
+    }
+
+ 
+    // SECTION 7: FINALIZE THE FILE
+  
+
+    // Attempt to flush all output.
+    output.flush();
+
+    // Check whether writing completed successfully.
+    if (!output)
+    {
+        std::cout << "\nERROR: Save failed.\n";
+
+        output.close();
+
+        return false;
+    }
+
+    // Close the save file.
+    output.close();
+
+    std::cout << "\nGame saved successfully.\n";
+    std::cout << "File: " << SAVE_FILE << "\n";
+
+    return true;
+}
+
+
+// WEEK 4: Loads saved game progress.
+//
+// Returns true when a saved game is restored.
+// Returns false when the file is missing or invalid.
+//
+// Temporary objects prevent corrupted data from
+// partially changing the current game.
+bool Game::LoadGame()
+{
+   
+    // SECTION 1: OPEN SAVE FILE
+    
+
+    // Open the save file for reading.
+    std::ifstream input(SAVE_FILE);
+
+    // Check whether the save file exists.
+    if (!input.is_open())
+    {
+        std::cout << "\nNo save file found.\n";
+        std::cout << "Start a New Game first.\n";
+
+        return false;
+    }
+
+    // SECTION 2: VALIDATE FILE VERSION
+   
+
+    std::string version;
+
+    // Read the save file's version identifier.
+    if (!(input >> version) ||
+        version != "THE_LAST_ROOM_V1")
+    {
+        std::cout << "\nERROR: Invalid save format.\n";
+        return false;
+    }
+
+    // ----------------------------------------
+    // SECTION 3: CREATE TEMPORARY GAME STATE
+    // ----------------------------------------
+
+    // This temporary player starts with default values.
+    Player loadedPlayer;
+
+    // Copy the current rooms.
+    // Their mutable contents will be replaced below.
+    std::vector<Room> loadedRooms = rooms;
+
+    // Temporary vector for memory-event states.
+    std::vector<int> loadedStates;
+
+   
+    // SECTION 4: LOAD PLAYER INFORMATION
+
+
+    int savedSanity = 0;
+    int savedRoom = 0;
+
+    // Read sanity and location.
+    if (!(input >> savedSanity >> savedRoom))
+    {
+        std::cout << "\nERROR: Invalid player data.\n";
+        return false;
+    }
+
+    // Make sure sanity is within valid limits.
+    if (savedSanity < 0 || savedSanity > 100)
+    {
+        std::cout << "\nERROR: Invalid sanity value.\n";
+        return false;
+    }
+
+    // Make sure the saved room exists.
+    if (savedRoom < 0 ||
+        savedRoom >= static_cast<int>(loadedRooms.size()))
+    {
+        std::cout << "\nERROR: Invalid room location.\n";
+        return false;
+    }
+
+    // Adjust the temporary player's sanity.
+    //
+    // Since Player starts at 100, the difference
+    // sets sanity to the saved value.
+    loadedPlayer.ChangeSanity(
+        savedSanity - loadedPlayer.GetSanity()
+    );
+
+    // Restore Matt's room location.
+    loadedPlayer.SetCurrentRoom(savedRoom);
+
+  
+    // SECTION 5: LOAD INVENTORY
+
+
+    int inventoryCount = 0;
+
+    // Read the number of collected items.
+    if (!(input >> inventoryCount) ||
+        inventoryCount < 0 ||
+        inventoryCount > MAX_SAVE_ITEMS)
+    {
+        std::cout << "\nERROR: Invalid inventory count.\n";
+        return false;
+    }
+
+    // Read each saved item.
+    for (int i = 0; i < inventoryCount; i++)
+    {
+        std::string itemName;
+        std::string itemDescription;
+
+        // Read the name and description.
+        if (!(input >> std::quoted(itemName)
+            >> std::quoted(itemDescription)))
+        {
+            std::cout << "\nERROR: Invalid inventory data.\n";
+            return false;
+        }
+
+        // Prevent unusually large or damaged strings.
+        if (itemName.size() > 500 ||
+            itemDescription.size() > 500)
+        {
+            std::cout << "\nERROR: Item text is invalid.\n";
+            return false;
+        }
+
+        // Rebuild the saved item.
+        Item loadedItem(itemName, itemDescription);
+
+        // Add the item to Matt's inventory.
+        loadedPlayer.AddItem(loadedItem);
+    }
+
+    
+    // SECTION 6: LOAD RECOVERED MEMORIES
+ 
+    int memoryCount = 0;
+
+    // Read the number of recovered memories.
+    if (!(input >> memoryCount) ||
+        memoryCount < 0 ||
+        memoryCount > MAX_SAVE_MEMORIES)
+    {
+        std::cout << "\nERROR: Invalid memory count.\n";
+        return false;
+    }
+
+    // Restore each recovered memory.
+    for (int i = 0; i < memoryCount; i++)
+    {
+        std::string memory;
+
+        // Read the quoted memory description.
+        if (!(input >> std::quoted(memory)) ||
+            memory.size() > 500)
+        {
+            std::cout << "\nERROR: Invalid memory data.\n";
+            return false;
+        }
+
+        // Add the memory to the temporary player.
+        loadedPlayer.AddMemory(memory);
+    }
+
+   
+    // SECTION 7: LOAD ROOM INFORMATION
+  
+
+    int roomCount = 0;
+
+    // Read the total number of saved rooms.
+    if (!(input >> roomCount))
+    {
+        std::cout << "\nERROR: Invalid room count.\n";
+        return false;
+    }
+
+    // The prototype requires the same number of
+    // rooms that currently exist in the game.
+    if (roomCount <= 0 ||
+        roomCount != static_cast<int>(loadedRooms.size()))
+    {
+        std::cout << "\nERROR: Incompatible room data.\n";
+        return false;
+    }
+
+    // Restore each room individually.
+    for (int i = 0; i < roomCount; i++)
+    {
+        int examined = 0;
+        int itemCount = 0;
+
+        // Read whether the room was examined
+        // and how many items remain inside.
+        if (!(input >> examined >> itemCount))
+        {
+            std::cout << "\nERROR: Invalid room state.\n";
+            return false;
+        }
+
+        // Validate the examination flag.
+        if (examined != 0 && examined != 1)
+        {
+            std::cout << "\nERROR: Invalid examined state.\n";
+            return false;
+        }
+
+        // Validate the number of room items.
+        if (itemCount < 0 ||
+            itemCount > MAX_SAVE_ITEMS)
+        {
+            std::cout << "\nERROR: Invalid room item count.\n";
+            return false;
+        }
+
+        // Restore whether Matt examined this room.
+        loadedRooms[i].SetExamined(examined == 1);
+
+        // Remove existing items from the temporary room.
+        // We will replace them with saved items.
+        while (loadedRooms[i].GetItemCount() > 0)
+        {
+            loadedRooms[i].RemoveItem(0);
+        }
+
+        // Read all items remaining in this room.
+        for (int j = 0; j < itemCount; j++)
+        {
+            std::string itemName;
+            std::string itemDescription;
+
+            if (!(input >> std::quoted(itemName)
+                >> std::quoted(itemDescription)))
+            {
+                std::cout << "\nERROR: Invalid room item.\n";
+                return false;
+            }
+
+            // Validate saved item text.
+            if (itemName.size() > 500 ||
+                itemDescription.size() > 500)
+            {
+                std::cout << "\nERROR: Invalid room item text.\n";
+                return false;
+            }
+
+            // Recreate the saved room item.
+            Item loadedItem(itemName, itemDescription);
+
+            // Put the item back in its original room.
+            loadedRooms[i].AddItem(loadedItem);
+        }
+    }
+
+  
+    // SECTION 8: LOAD MEMORY EVENT STATES
+  
+
+    int stateCount = 0;
+
+    // Read the number of memory events.
+    if (!(input >> stateCount) ||
+        stateCount != roomCount)
+    {
+        std::cout << "\nERROR: Invalid memory-event count.\n";
+        return false;
+    }
+
+    // Load each memory event's progress.
+    for (int i = 0; i < stateCount; i++)
+    {
+        int state = -1;
+
+        // Read the event's saved state.
+        if (!(input >> state))
+        {
+            std::cout << "\nERROR: Invalid memory-event data.\n";
+            return false;
+        }
+
+        // Only three states are supported:
+        //
+        // 0 = untouched
+        // 1 = avoided
+        // 2 = confronted
+        if (state < 0 || state > 2)
+        {
+            std::cout << "\nERROR: Invalid memory state.\n";
+            return false;
+        }
+
+        loadedStates.push_back(state);
+    }
+
+   
+    // SECTION 9: CHECK FOR EXTRA SAVE DATA
+  
+
+    // Reject unexpected additional non-whitespace
+    // content after the expected saved data.
+    std::string extra;
+
+    if (input >> extra)
+    {
+        std::cout << "\nERROR: Extra save data found.\n";
+        return false;
+    }
+
+    // SECTION 10: RESTORE THE GAME
+  
+
+    // The save data has passed validation.
+    // It is now safe to replace the live game state.
+    player = loadedPlayer;
+    rooms = loadedRooms;
+    memoryStates = loadedStates;
+
+    // Show confirmation to the player.
     std::cout << "\n";
-    std::cout << "============================\n";
-    std::cout << "       THE LAST ROOM\n";
-    std::cout << "============================\n";
-    std::cout << "1. New Game\n";
-    std::cout << "2. Instructions\n";
-    std::cout << "3. Exit\n";
-    std::cout << "============================\n";
-    std::cout << "Enter choice: ";
+    std::cout << "Game loaded successfully.\n";
 
-    // Use the reusable input validation method
-    int choice = GetValidatedInput(1, 3);
+    std::cout << "Current Location: "
+        << rooms[player.GetCurrentRoom()].GetName()
+        << "\n";
 
-    // Start a new game
-    if (choice == 1)
-    {
-        StartNewGame();
-    }
+    std::cout << "Sanity: "
+        << player.GetSanity()
+        << "/100\n";
 
-    // Display basic instructions
-    else if (choice == 2)
-    {
-        std::cout << "\n";
-        std::cout << "Explore the environment and examine your surroundings.\n";
-        std::cout << "You may discover objects connected to Matt's past.\n";
-        std::cout << "Your decisions and experiences can affect sanity.\n";
-        std::cout << "As sanity changes, Matt's perception may also change.\n";
-    }
-
-    // End the application
-    else if (choice == 3)
-    {
-        gameRunning = false;
-
-        std::cout << "\nExiting game...\n";
-    }
+    return true;
 }
 
-
-void Game::StartNewGame()
+// WEEK 4: Controls the active gameplay loop.
+//
+// This method does not reset the player or rooms.
+// That allows a loaded game to resume correctly.
+void Game::PlayGame()
 {
-    // Reset Matt to his starting values.
-    // This restores sanity, location, and clears inventory
-    // and memories through the Player constructor.
-    player = Player();
-
-    // Clear the previous room objects.
-    // This removes their collected-item and examined states.
-    rooms.clear();
-
-    // Rebuild the original rooms and collectible items.
-    CreateRooms();
-
-    // Clear all previous memory event progress.
-    memoryStates.clear();
-
-    // Give every room an unresolved memory state.
-    for (int i = 0; i < rooms.size(); i++)
-    {
-        memoryStates.push_back(0);
-    }
-
-    // Controls whether the player remains in gameplay.
     bool playing = true;
 
-    // Display the opening scene.
-    std::cout << "\n";
-    std::cout << "====================================\n";
-    std::cout << "You wake to the sound of metal\n";
-    std::cout << "grinding against metal.\n";
-    std::cout << "\n";
-    std::cout << "For a moment, you cannot remember\n";
-    std::cout << "where you are.\n";
-    std::cout << "====================================\n";
-
-    // Continue gameplay until the player returns
+    // Continue until the player returns
     // to the main menu.
     while (playing)
     {
-        // Display the current room and menu choices.
+        // Display current location and available actions.
         DisplayGameMenu();
 
-        // Week 3 adds two new gameplay menu choices.
-        int choice = GetValidatedInput(1, 8);
+        // Week 4 has nine gameplay choices.
+        int choice = GetValidatedInput(1, 9);
 
         if (choice == 1)
         {
@@ -220,48 +704,67 @@ void Game::StartNewGame()
         }
         else if (choice == 2)
         {
-            // Collect an item from the current room.
+            // Collect an available item.
             CollectItem();
         }
         else if (choice == 3)
         {
-            // Move to another room.
+            // Move between rooms.
             MovePlayer();
         }
         else if (choice == 4)
         {
-            // Display physical inventory.
+            // Display Matt's physical inventory.
             player.DisplayInventory();
         }
         else if (choice == 5)
         {
-            // Display sanity and psychological state.
+            // Display current sanity information.
             DisplaySanity();
         }
         else if (choice == 6)
         {
-            // WEEK 3: Display recovered memories.
+            // Display recovered memory fragments.
             player.DisplayMemories();
         }
         else if (choice == 7)
         {
-            // WEEK 3: Confront or avoid a memory.
+            // Confront or avoid a psychological memory.
             HandleMemoryEvent();
         }
         else if (choice == 8)
         {
-            // Return to the main menu.
-            // Unsaved progress is discarded in Week 3.
+            // WEEK 4: Save current progress.
+            SaveGame();
+        }
+        else if (choice == 9 || choice == 0)
+        {
+            // Return to the application's main menu.
             playing = false;
         }
     }
 }
 
+void Game::DisplayMainMenu()
+{
+    std::cout << "\n====MAIN MENU====\n";
+    std::cout << "1. New Game\n";
+    std::cout << "2. Load Game\n";
+    std::cout << "3. Exit Game\n";
 
+}
 
+// WEEK 4: Displays the main application menu.
+//
+// The player can start a new game,
+// load previously saved progress,
+// read instructions, or exit.
+
+// WEEK 4: Displays the gameplay menu
+// and the player's current environment.
 void Game::DisplayGameMenu()
 {
-    // Get the index of Matt's current location.
+    // Find Matt's current room.
     int roomIndex = player.GetCurrentRoom();
 
     std::cout << "\n";
@@ -269,14 +772,13 @@ void Game::DisplayGameMenu()
     std::cout << rooms[roomIndex].GetName() << "\n";
     std::cout << "----------------------------\n";
 
-    // Use Matt's sanity to determine the room description.
+    // Room descriptions depend on Matt's sanity.
     std::cout << rooms[roomIndex].GetDescription(
         player.GetSanity()
     );
 
     std::cout << "\n\n";
 
-    // Week 3 expanded gameplay menu.
     std::cout << "1. Examine surroundings\n";
     std::cout << "2. Collect item\n";
     std::cout << "3. Move\n";
@@ -284,10 +786,61 @@ void Game::DisplayGameMenu()
     std::cout << "5. Check sanity\n";
     std::cout << "6. View memory journal\n";
     std::cout << "7. Investigate memory\n";
-    std::cout << "8. Return to main menu\n";
+
+    // WEEK 4: New save functionality.
+    std::cout << "8. Save Game\n";
+
+    std::cout << "9. Return to Main Menu\n";
 
     std::cout << "\nEnter choice: ";
 }
+
+
+
+
+// WEEK 4: Starts a completely new game.
+//
+// This resets Matt and recreates the rooms,
+// inventory, memory states, and sanity.
+void Game::StartNewGame()
+{
+    // Reset Matt to his default starting values.
+    // This clears his inventory and memory journal.
+    player = Player();
+
+    // Remove all existing rooms from a previous game.
+    rooms.clear();
+
+    // Recreate the original rooms and their items.
+    CreateRooms();
+
+    // Remove all previous memory progress.
+    memoryStates.clear();
+
+    // Every room begins with an untouched memory.
+    for (int i = 0;
+        i < static_cast<int>(rooms.size());
+        i++)
+    {
+        memoryStates.push_back(0);
+    }
+
+    // Display the opening scene.
+    std::cout << "\n";
+    std::cout << "====================================\n";
+    std::cout << "Metal grinds against metal.\n";
+    std::cout << "Matt wakes inside an empty train car.\n";
+    std::cout << "He cannot remember how he arrived.\n";
+    std::cout << "====================================\n";
+
+    // Enter the gameplay loop.
+    PlayGame();
+}
+
+
+
+
+
 
 // Allows Matt to investigate his current room
 //
@@ -445,7 +998,7 @@ void Game::MovePlayer()
 }
 
 // Displays Matt numerical sanity and current sanity state
-void Game::DisplaySanity()
+void Game::DisplaySanity() const
 {
     std::cout << "\n";
     std::cout << "============================\n";
@@ -464,57 +1017,63 @@ void Game::DisplaySanity()
 //
 // The method continues asking until the user enters
 // a valid integer inside the accepted range
+
+// WEEK 4: Validates menu input.
+//
+// The player must enter a complete whole number
+// within the supplied range.
+//
+// Examples:
+// 1     = valid when within the requested range
+// hello = invalid
+// 3.5   = invalid
+// 1abc  = invalid
+// 99    = invalid when outside the range
+//
+// Returns 0 if console input is closed.
 int Game::GetValidatedInput(int minimum, int maximum)
 {
-    int choice;
+    std::string line;
 
+    // Keep asking until valid input is provided.
     while (true)
     {
-        std::cin >> choice;
-
-        // Check whether the user entered something
-        // that could not be stored as an integer
-        if (std::cin.fail())
+        // Read the entire input line.
+        if (!std::getline(std::cin, line))
         {
-            // Reset cin error state
-            std::cin.clear();
-
-            // Remove invalid characters still waiting
-            // inside the input buffer
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-
-            std::cout << "\nInvalid input.\n";
-            std::cout << "Enter a number between "
-                << minimum
-                << " and "
-                << maximum
-                << ": ";
+            // Exit cleanly if input is no longer available.
+            return 0;
         }
 
-        // Check whether the number falls outside
-        // the accepted menu range.
-        else if (choice < minimum || choice > maximum)
-        {
-            std::cout << "\nInvalid selection.\n";
-            std::cout << "Enter a number between "
-                << minimum
-                << " and "
-                << maximum
-                << ": ";
-        }
+        // Create a stream from the player's input.
+        std::istringstream inputStream(line);
 
-        // The input is valid.
-        else
-        {
-            // Remove any remaining characters from
-            // the current input line.
-            std::cin.ignore(
-                std::numeric_limits<std::streamsize>::max(),
-                '\n'
-            );
+        int choice = 0;
 
+        // Stores unexpected extra text.
+        std::string extra;
+
+        // Verify that:
+        // 1. An integer can be read.
+        // 2. No additional text follows it.
+        // 3. The value falls within the allowed range.
+        if ((inputStream >> choice) &&
+            !(inputStream >> extra) &&
+            choice >= minimum &&
+            choice <= maximum)
+        {
+            // Valid input: return the menu choice.
             return choice;
         }
+
+        // Invalid input: explain the accepted range.
+        std::cout << "\nInvalid input.\n";
+
+        std::cout << "Enter a whole number between "
+            << minimum
+            << " and "
+            << maximum
+            << ": ";
     }
 }
 
@@ -632,9 +1191,39 @@ void Game::HandleMemoryEvent()
         // during the current game session.
         memoryStates[roomIndex] = 2;
 
+
+        // WEEK 4: Check whether all three memory
+        // fragments have been recovered.
+        //
+        // This represents completion of the COS1 prototype,
+        // not the ending of the full psychological horror game.
+        if (player.GetMemoryCount() == 3)
+        {
+            std::cout << "\n";
+            std::cout << "====================================\n";
+            std::cout << "          PROTOTYPE ENDING\n";
+            std::cout << "====================================\n";
+
+            std::cout << "\n";
+            std::cout << "Three memories return.\n";
+            std::cout << "The station lights stop flickering.\n";
+            std::cout << "For the first time, the world is quiet.\n";
+
+            std::cout << "\n";
+            std::cout << "Matt has not escaped his past.\n";
+            std::cout << "But he can finally see it clearly.\n";
+
+            std::cout << "\n";
+            std::cout << "END OF PROTOTYPE\n";
+
+            std::cout << "====================================\n";
+        }
+
+
         std::cout << "\n";
         std::cout << "Sanity increased by up to 8.\n";
         std::cout << "Memory fragment recovered.\n";
+
     }
     else if (choice == 2)
     {

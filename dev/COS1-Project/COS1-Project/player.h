@@ -37,19 +37,19 @@ public:
     void SetName(std::string playerName);
 
     // Returns the player name
-    std::string GetName();
+    std::string GetName() const;
 
     // Returns Matt's current sanity
-    int GetSanity();
+    int GetSanity() const;
 
     // Changes sanity while keeping it between 0 and 100
     void ChangeSanity(int amount);
 
     // Returns a text description of Matt's current sanity state
-    std::string GetSanityState();
+    std::string GetSanityState() const;
 
     // Returns the index of Matt current room
-    int GetCurrentRoom();
+    int GetCurrentRoom() const;
 
     // Changes Matt's current room
     void SetCurrentRoom(int roomIndex);
@@ -68,6 +68,20 @@ public:
     void DisplayMemories();
 
     // WEEK 3: Returns the number of recovered memories.
-    int GetMemoryCount();
+    int GetMemoryCount() const;
+
+
+    // WEEK 4: Returns the number of items
+    // currently stored in Matt's inventory.
+    int GetInventoryCount() const;
+
+    // WEEK 4: Returns an inventory item by index.
+    // Game uses this when writing collected items to a file.
+    Item GetInventoryItem(int index) const;
+
+    // WEEK 4: Returns a recovered memory by index.
+    // Game uses this to save Matt's memory journal.
+    std::string GetMemory(int index) const;
+
 
 };

@@ -58,10 +58,24 @@ private:
     void MovePlayer();
 
     // Displays Matt's current sanity info
-    void DisplaySanity();
+    void DisplaySanity() const;
 
     // Handles integer input validation
     int GetValidatedInput(int minimum, int maximum);
+
+
+    // WEEK 4: Runs the active gameplay menu.
+    // Used after starting a new game or loading one.
+    void PlayGame();
+
+    // WEEK 4: Writes the current game state to a file.
+    // Returns true if the file was saved successfully.
+    bool SaveGame();
+
+    // WEEK 4: Reads a previously saved game.
+    // Returns true if valid progress was restored.
+    bool LoadGame();
+
 
 public:
 
